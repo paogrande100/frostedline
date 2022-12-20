@@ -1,0 +1,5651 @@
+Opt( "MustDeclareVars", 1 )
+
+HotKeySet("{F1}", "PauseModules")
+
+global $g_bPaused = 0
+
+global $imagespath = "C:\Program Files (x86)\Trash Project\Images\"
+
+Func PauseModules()
+
+        $g_bPaused = Not $g_bPaused
+		
+        While $g_bPaused
+		
+				HotKeySet("+j")
+				HotKeySet("+2")
+				HotKeySet("+3")
+				HotKeySet("+4")
+				HotKeySet("+5")
+				HotKeySet("+6")
+				HotKeySet("+7")
+				HotKeySet("+8")
+				HotKeySet("+9")
+				
+                ToolTip(':)', 0, 0)
+        WEnd
+		
+        ToolTip("")
+		
+		HotKeySet("+j","OPENANDCLOSE")
+		HotKeySet("+2", "resetslot2")
+		HotKeySet("+3", "resetslot3")
+		HotKeySet("+4", "resetslot4")
+		HotKeySet("+5", "resetslot5")
+		HotKeySet("+6", "resetslot6")
+		HotKeySet("+7", "resetslot7")
+		HotKeySet("+8", "resetslot8")
+		HotKeySet("+9", "resetslot9")
+		
+EndFunc
+
+global $guistate = 0
+global $cheatopt = "combat"
+
+global $autoclicker_toggle = 0
+global $autopot_toggle = 0
+global $autosoup_toggle = 0
+
+global $lastslot = 9
+global $lastslot_soup = 9
+
+Local $hFileExists = FileExists($imagespath & "\FL_config.txt")
+Local $hFileOpen
+local $hFileRead_autoclicker
+local $hFileRead_autopot
+local $hFileRead_autosoup
+
+If $hFileExists Then
+    $hFileOpen = FileOpen($imagespath & "\FL_config.txt", $FO_READ)
+Else
+    $hFileOpen = FileOpen($imagespath & "\FL_config.txt", $FO_OVERWRITE)
+	FileWrite($hFileOpen, "0"& @CRLF)
+	FileWrite($hFileOpen, "0" & @CRLF)
+	FileWrite($hFileOpen, "0")
+	FileClose($imagespath & "\FL_config.txt")
+	$hFileOpen = FileOpen($imagespath & "\FL_config.txt", $FO_READ)
+EndIf
+
+If $hFileOpen = -1 Then
+	ConsoleWrite("Issue finding config file.")
+else
+	ConsoleWrite("Config file found.")
+	$hFileRead_autoclicker = FileReadLine($hFileOpen, 1)
+	$hFileRead_autopot = FileReadLine($hFileOpen, 2)
+	$hFileRead_autosoup = FileReadLine($hFileOpen, 3)
+	FileClose($imagespath & "\FL_config.txt")
+EndIf
+
+Global $MAIN = GUICreate("FL", 500, 600, -1000, -1000, $WS_POPUP)
+GUISetBkColor(0x121214)
+
+GUISetIcon($imagespath & "icon.ico")
+
+Global $backgroundflickerfix = GUICtrlCreatePic($imagespath & 'menu_blank.jpg',0,0,500,600)
+GUICtrlSetState(-1, $GUI_DISABLE)
+GUICtrlSetState(-1, $GUI_SHOW)
+
+Global $background1 = GUICtrlCreatePic($imagespath & 'menu_combat.jpg',0,0,500,600)
+GUICtrlSetState(-1, $GUI_DISABLE)
+GUICtrlSetState(-1, $GUI_SHOW)
+
+Global $background2 = GUICtrlCreatePic($imagespath & 'menu_utility.jpg',0,0,500,600)
+GUICtrlSetState(-1, $GUI_DISABLE)
+GUICtrlSetState(-1, $GUI_HIDE)
+
+Global $background3 = GUICtrlCreatePic($imagespath & 'menu_configs.jpg',0,0,500,600)
+GUICtrlSetState(-1, $GUI_DISABLE)
+GUICtrlSetState(-1, $GUI_HIDE)
+
+Global $menu_tab_config = GUICtrlCreateLabel("", 398, 37, 74, 17)
+GUICtrlSetBkColor(-1, $GUI_BKCOLOR_TRANSPARENT)
+
+Global $menu_tab_utility = GUICtrlCreateLabel("", 315, 37, 75, 17)
+GUICtrlSetBkColor(-1, $GUI_BKCOLOR_TRANSPARENT)
+
+Global $menu_tab_combat = GUICtrlCreateLabel("", 225, 37, 82, 17)
+GUICtrlSetBkColor(-1, $GUI_BKCOLOR_TRANSPARENT)
+
+Global $button_info = GUICtrlCreateLabel("", 410, 112, 18, 17)
+GUICtrlSetBkColor(-1, $GUI_BKCOLOR_TRANSPARENT)
+
+Global $button_close = GUICtrlCreateLabel("", 434, 112, 18, 17)
+GUICtrlSetBkColor(-1, $GUI_BKCOLOR_TRANSPARENT)
+
+Global $autoclicker_checkBox = GUICtrlCreateCheckbox("", 192, 177, 13, 13)
+GUICtrlSetBkColor(-1, 0x19181D)
+
+Global $autopot_checkBox = GUICtrlCreateCheckbox("", 192, 201, 13, 13)
+GUICtrlSetBkColor(-1, 0x19181D)
+
+Global $autosoup_checkBox = GUICtrlCreateCheckbox("", 192, 226, 13, 13)
+GUICtrlSetBkColor(-1, 0x19181D)
+
+Global $button_savecfg = GUICtrlCreateLabel("", 65, 160, 104, 43)
+GUICtrlSetBkColor(-1, $GUI_BKCOLOR_TRANSPARENT)
+GUICtrlSetState(-1, $GUI_DISABLE)
+GUICtrlSetState(-1, $GUI_HIDE)
+
+Global $button_logo = GUICtrlCreateLabel("", 26, 22, 52, 46)
+GUICtrlSetBkColor(-1, $GUI_BKCOLOR_TRANSPARENT)
+
+GUIRegisterMsg($WM_NCHITTEST, "_MY_NCHITTEST")
+
+WinSetTrans($MAIN, "", 0)
+
+if $hFileRead_autoclicker = 1 Then
+	GUICtrlSetState($autoclicker_checkBox, $GUI_CHECKED)
+	$autoclicker_toggle = 1
+endif
+
+if $hFileRead_autopot = 1 Then
+	GUICtrlSetState($autopot_checkBox, $GUI_CHECKED)
+	$autopot_toggle = 1
+endif
+
+if $hFileRead_autosoup = 1 Then
+	GUICtrlSetState($autosoup_checkBox, $GUI_CHECKED)
+	$autosoup_toggle = 1
+endif
+
+_center()
+
+GUISetState(@SW_HIDE,$MAIN)
+
+HotKeySet("+j","OPENANDCLOSE")
+HotKeySet("+2", "resetslot2")
+HotKeySet("+3", "resetslot3")
+HotKeySet("+4", "resetslot4")
+HotKeySet("+5", "resetslot5")
+HotKeySet("+6", "resetslot6")
+HotKeySet("+7", "resetslot7")
+HotKeySet("+8", "resetslot8")
+HotKeySet("+9", "resetslot9")
+
+While 1
+	
+	While $guistate = 1
+		
+		Switch GUIGetMsg($MAIN)
+		
+			Case $GUI_EVENT_CLOSE
+				closeanimation()
+				Exit
+				
+			Case $button_close
+				global $closemsgbox = MsgBox($MB_YESNO, "$$$ FrostedLine $$$", "Are you sure you want to close FrostedLine? This isn't meant to bypass screenshares.")
+				If $closemsgbox == 6 Then 
+					closeanimation()
+					Exit
+				endif
+			
+			Case $button_info
+				global $closemsgbox = MsgBox($MB_OK, "$$$ FrostedLine $$$", "Client founded and developed by Skueh." & @CRLF & "" & @CRLF & "  Youtube: youtube.com/c/skueh" & @CRLF & "  Discord: Skueh#3600")
+			
+			Case $button_savecfg
+				global $closemsgbox = MsgBox($MB_YESNO, "$$$ FrostedLine $$$", "Are you sure you want to save the current settings and module states?")
+				If $closemsgbox == 6 Then 
+					$hFileOpen = FileOpen($imagespath & "\FL_config.txt", $FO_OVERWRITE)
+					FileWrite($hFileOpen, $autoclicker_toggle & @CRLF)
+					FileWrite($hFileOpen, $autopot_toggle & @CRLF)
+					FileWrite($hFileOpen, $autosoup_toggle)
+					FileClose($imagespath & "\FL_config.txt")
+				endif
+				
+			Case $button_logo
+				ClipPut ( "frostedline.cc" )
+				global $closemsgbox = MsgBox($MB_OK, "$$$ FrostedLine $$$", "Website: frostedline.cc" & @CRLF & "(text copied to clipboard)")
+				
+			Case $menu_tab_config
+				if $cheatopt = "config" then
+					GUICtrlSetState($background3, $GUI_SHOW)	
+					GUICtrlSetState($background2, $GUI_HIDE)
+					GUICtrlSetState($background1, $GUI_HIDE)	
+					
+					GUICtrlSetState($button_savecfg, $GUI_HIDE)
+					GUICtrlSetState($button_savecfg, $GUI_DISABLE)
+				elseif $cheatopt = "utility" then
+					GUICtrlSetState($background3, $GUI_SHOW)	
+					GUICtrlSetState($background2, $GUI_HIDE)
+					GUICtrlSetState($background1, $GUI_HIDE)
+				elseif $cheatopt = "combat" then
+					GUICtrlSetState($background3, $GUI_SHOW)
+					GUICtrlSetState($background2, $GUI_HIDE)
+					GUICtrlSetState($background1, $GUI_HIDE)
+					
+					GUICtrlSetState($autoclicker_checkBox, $GUI_HIDE)
+					GUICtrlSetState($autoclicker_checkBox, $GUI_DISABLE)
+					GUICtrlSetState($autopot_checkBox, $GUI_HIDE)
+					GUICtrlSetState($autopot_checkBox, $GUI_DISABLE)
+					GUICtrlSetState($autosoup_checkBox, $GUI_HIDE)
+					GUICtrlSetState($autosoup_checkBox, $GUI_DISABLE)
+				endif
+					
+				GUICtrlSetState($button_savecfg, $GUI_SHOW)
+				GUICtrlSetState($button_savecfg, $GUI_ENABLE)
+					
+				$cheatopt = "config"
+				
+			Case $menu_tab_utility
+				if $cheatopt = "config" then
+					GUICtrlSetState($background3, $GUI_HIDE)
+					GUICtrlSetState($background2, $GUI_SHOW)
+					GUICtrlSetState($background1, $GUI_HIDE)	
+					
+					GUICtrlSetState($button_savecfg, $GUI_HIDE)
+					GUICtrlSetState($button_savecfg, $GUI_DISABLE)
+				elseif $cheatopt = "utility" then
+					GUICtrlSetState($background3, $GUI_HIDE)
+					GUICtrlSetState($background2, $GUI_SHOW)
+					GUICtrlSetState($background1, $GUI_HIDE)	
+				elseif $cheatopt = "combat" then
+					GUICtrlSetState($background3, $GUI_HIDE)
+					GUICtrlSetState($background2, $GUI_SHOW)
+					GUICtrlSetState($background1, $GUI_HIDE)
+					GUICtrlSetState($autoclicker_checkBox, $GUI_HIDE)
+					GUICtrlSetState($autoclicker_checkBox, $GUI_DISABLE)
+					GUICtrlSetState($autopot_checkBox, $GUI_HIDE)
+					GUICtrlSetState($autopot_checkBox, $GUI_DISABLE)
+					GUICtrlSetState($autosoup_checkBox, $GUI_HIDE)
+					GUICtrlSetState($autosoup_checkBox, $GUI_DISABLE)
+				endif
+					
+				$cheatopt = "utility"
+				
+			Case $menu_tab_combat
+				if $cheatopt = "config" then
+					GUICtrlSetState($background3, $GUI_HIDE)	
+					GUICtrlSetState($background2, $GUI_HIDE)
+					GUICtrlSetState($background1, $GUI_SHOW)
+
+					GUICtrlSetState($button_savecfg, $GUI_HIDE)
+					GUICtrlSetState($button_savecfg, $GUI_DISABLE)					
+				elseif $cheatopt = "utility" then
+					GUICtrlSetState($background3, $GUI_HIDE)	
+					GUICtrlSetState($background2, $GUI_HIDE)
+					GUICtrlSetState($background1, $GUI_SHOW)
+				elseif $cheatopt = "combat" then
+					GUICtrlSetState($background3, $GUI_HIDE)
+					GUICtrlSetState($background2, $GUI_HIDE)
+					GUICtrlSetState($background1, $GUI_SHOW)
+					
+					GUICtrlSetState($autoclicker_checkBox, $GUI_HIDE)
+					GUICtrlSetState($autoclicker_checkBox, $GUI_DISABLE)
+					GUICtrlSetState($autopot_checkBox, $GUI_HIDE)
+					GUICtrlSetState($autopot_checkBox, $GUI_DISABLE)
+					GUICtrlSetState($autosoup_checkBox, $GUI_HIDE)
+					GUICtrlSetState($autosoup_checkBox, $GUI_DISABLE)
+				endif
+				
+				GUICtrlSetState($autopot_checkBox, $GUI_SHOW)
+				GUICtrlSetState($autopot_checkBox, $GUI_ENABLE)
+				GUICtrlSetState($autoclicker_checkBox, $GUI_SHOW)
+				GUICtrlSetState($autoclicker_checkBox, $GUI_ENABLE)
+				GUICtrlSetState($autosoup_checkBox, $GUI_SHOW)
+				GUICtrlSetState($autosoup_checkBox, $GUI_ENABLE)
+					
+				$cheatopt = "combat"
+			
+			Case $autoclicker_checkBox
+				if $autoclicker_toggle = 0 then
+					$autoclicker_toggle = 1
+				else
+					$autoclicker_toggle = 0
+				endif
+				
+			Case $autopot_checkBox
+				if $autopot_toggle = 0 then
+					$autopot_toggle = 1
+					$lastslot = 9
+				else
+					$autopot_toggle = 0
+				endif
+			
+			Case $autosoup_checkBox
+				if $autosoup_toggle = 0 then
+					$autosoup_toggle = 1
+					$lastslot_soup = 9
+				else
+					$autosoup_toggle = 0
+				endif
+			
+		EndSwitch
+		
+	Wend
+	
+	While $guistate = 0 AND NOT $g_bPaused
+		if $autoclicker_toggle = 1 then
+			while _IsPressed(48)
+				autoclicker()
+			wend
+		endif
+		
+		if $autopot_toggle = 1 then
+			if _IsPressed(43) then
+				autopot()
+				Sleep(10)
+			endif
+		endif
+		
+		if $autosoup_toggle = 1 then
+			if _IsPressed(43) then
+				autosoup()
+				Sleep(10)
+			endif
+		endif
+	Wend
+	
+wend
+
+Func _MY_NCHITTEST($hWnd, $uMsg, $wParam, $lParam)
+    Switch $hWnd
+        Case $MAIN
+            Local $aPos = WinGetPos($hWnd)
+            If Abs(BitAND(BitShift($lParam, 16), 0xFFFF) - $aPos[1]) < 88 Then Return $HTCAPTION
+    EndSwitch
+    Return $GUI_RUNDEFMSG
+EndFunc
+
+func _center()
+    winmove($MAIN,'',(@Desktopwidth - wingetpos($MAIN)[2]) / 2,(@Desktopheight - wingetpos($MAIN)[3]) / 2)
+endfunc
+
+Func OPENANDCLOSE()
+
+		if $guistate = 0 AND WinActive("Calculator") OR WinActive("Calculadora")then
+			GUISetState(@SW_SHOW,$MAIN)
+			_center()
+			openanimation()
+			$guistate = not $guistate
+		elseif $guistate = 1 then
+			closeanimation()
+			GUISetState(@SW_HIDE,$MAIN)
+			$guistate = not $guistate
+		endif
+
+endfunc
+
+Func blank()
+
+Endfunc
+
+Func resetslot2()
+
+	$lastslot = 9
+	$lastslot_soup = 9
+
+endfunc
+
+Func resetslot3()
+
+	$lastslot = 2
+	$lastslot_soup = 2
+
+endfunc
+
+Func resetslot4()
+
+	$lastslot = 3
+	$lastslot_soup = 3
+
+endfunc
+
+Func resetslot5()
+
+	$lastslot = 4
+	$lastslot_soup = 4
+
+endfunc
+
+Func resetslot6()
+
+	$lastslot = 5
+	$lastslot_soup = 5
+
+endfunc
+
+Func resetslot7()
+
+	$lastslot = 6
+	$lastslot_soup = 6
+
+endfunc
+
+Func resetslot8()
+
+	$lastslot = 7
+	$lastslot_soup = 7
+
+endfunc
+
+Func resetslot9()
+
+	$lastslot = 8
+	$lastslot_soup = 8
+
+endfunc
+
+Func autosoup()
+	while 1
+		
+		local $randomnum = Random(35,80)
+		
+		if $lastslot_soup = 9 then 
+			
+			Send("{2 DOWN}")
+			Sleep($randomnum)
+			Send("{2 up}")
+			
+			Sleep($randomnum)
+			
+			MouseDown($MOUSE_CLICK_RIGHT)
+			Sleep($randomnum)
+			MouseUp($MOUSE_CLICK_RIGHT)
+			
+			Sleep($randomnum)
+			
+			Send("{q DOWN}")
+			Sleep($randomnum)
+			Send("{q up}")
+			
+			$lastslot_soup = 2
+			
+		elseif $lastslot_soup = 2 then 
+		
+			Send("{3 DOWN}")
+			Sleep($randomnum)
+			Send("{3 up}")
+			
+			Sleep($randomnum)
+			
+			MouseDown($MOUSE_CLICK_RIGHT)
+			Sleep($randomnum)
+			MouseUp($MOUSE_CLICK_RIGHT)
+			
+			Sleep($randomnum)
+			
+			Send("{q DOWN}")
+			Sleep($randomnum)
+			Send("{q up}")
+			
+			$lastslot_soup = 3
+			
+		elseif $lastslot_soup = 3 then 
+		
+			Send("{4 DOWN}")
+			Sleep($randomnum)
+			Send("{4 up}")
+			
+			Sleep($randomnum)
+			
+			MouseDown($MOUSE_CLICK_RIGHT)
+			Sleep($randomnum)
+			MouseUp($MOUSE_CLICK_RIGHT)
+			
+			Sleep($randomnum)
+			
+			Send("{q DOWN}")
+			Sleep($randomnum)
+			Send("{q up}")
+			
+			$lastslot_soup = 4
+			
+		elseif $lastslot_soup = 4 then 
+		
+			Send("{5 DOWN}")
+			Sleep($randomnum)
+			Send("{5 up}")
+			
+			Sleep($randomnum)
+			
+			MouseDown($MOUSE_CLICK_RIGHT)
+			Sleep($randomnum)
+			MouseUp($MOUSE_CLICK_RIGHT)
+			
+			Sleep($randomnum)
+			
+			Send("{q DOWN}")
+			Sleep($randomnum)
+			Send("{q up}")
+			
+			$lastslot_soup = 5
+			
+		elseif $lastslot_soup = 5 then 
+		
+			Send("{6 DOWN}")
+			Sleep($randomnum)
+			Send("{6 up}")
+			
+			Sleep($randomnum)
+			
+			MouseDown($MOUSE_CLICK_RIGHT)
+			Sleep($randomnum)
+			MouseUp($MOUSE_CLICK_RIGHT)
+			
+			Sleep($randomnum)
+			
+			Send("{q DOWN}")
+			Sleep($randomnum)
+			Send("{q up}")
+			
+			$lastslot_soup = 6
+		
+		elseif $lastslot_soup = 6 then 
+		
+			Send("{7 DOWN}")
+			Sleep($randomnum)
+			Send("{7 up}")
+			
+			Sleep($randomnum)
+			
+			MouseDown($MOUSE_CLICK_RIGHT)
+			Sleep($randomnum)
+			MouseUp($MOUSE_CLICK_RIGHT)
+			
+			Sleep($randomnum)
+			
+			Send("{q DOWN}")
+			Sleep($randomnum)
+			Send("{q up}")
+			
+			$lastslot_soup = 7
+			
+		elseif $lastslot_soup = 7 then 
+		
+			Send("{8 DOWN}")
+			Sleep($randomnum)
+			Send("{8 up}")
+			
+			Sleep($randomnum)
+			
+			MouseDown($MOUSE_CLICK_RIGHT)
+			Sleep($randomnum)
+			MouseUp($MOUSE_CLICK_RIGHT)
+			
+			Sleep($randomnum)
+			
+			Send("{q DOWN}")
+			Sleep($randomnum)
+			Send("{q up}")
+			
+			$lastslot_soup = 8
+		
+		elseif $lastslot_soup = 8 then 
+		
+			Send("{9 DOWN}")
+			Sleep($randomnum)
+			Send("{9 up}")
+			
+			Sleep($randomnum)
+			
+			MouseDown($MOUSE_CLICK_RIGHT)
+			Sleep($randomnum)
+			MouseUp($MOUSE_CLICK_RIGHT)
+			
+			Sleep($randomnum)
+			
+			Send("{q DOWN}")
+			Sleep($randomnum)
+			Send("{q up}")
+			
+			$lastslot_soup = 9
+			
+		endif
+		
+		Sleep($randomnum)
+		Send("{1 DOWN}")
+		Sleep($randomnum)
+		Send("{1 up}")
+		
+		ExitLoop
+		
+	WEnd
+Endfunc
+
+Func autopot()
+	while 1
+		
+		local $randomnum = Random(35,80)
+		
+		if $lastslot = 9 then 
+			
+			Send("{2 DOWN}")
+			Sleep($randomnum)
+			Send("{2 up}")
+			
+			Sleep($randomnum)
+			
+			MouseDown($MOUSE_CLICK_RIGHT)
+			Sleep($randomnum)
+			MouseUp($MOUSE_CLICK_RIGHT)
+			
+			$lastslot = 2
+			
+		elseif $lastslot = 2 then 
+		
+			Send("{3 DOWN}")
+			Sleep($randomnum)
+			Send("{3 up}")
+			
+			Sleep($randomnum)
+			
+			MouseDown($MOUSE_CLICK_RIGHT)
+			Sleep($randomnum)
+			MouseUp($MOUSE_CLICK_RIGHT)
+			
+			$lastslot = 3
+			
+		elseif $lastslot = 3 then 
+		
+			Send("{4 DOWN}")
+			Sleep($randomnum)
+			Send("{4 up}")
+			
+			Sleep($randomnum)
+			
+			MouseDown($MOUSE_CLICK_RIGHT)
+			Sleep($randomnum)
+			MouseUp($MOUSE_CLICK_RIGHT)
+			
+			$lastslot = 4
+			
+		elseif $lastslot = 4 then 
+		
+			Send("{5 DOWN}")
+			Sleep($randomnum)
+			Send("{5 up}")
+			
+			Sleep($randomnum)
+			
+			MouseDown($MOUSE_CLICK_RIGHT)
+			Sleep($randomnum)
+			MouseUp($MOUSE_CLICK_RIGHT)
+			
+			$lastslot = 5
+			
+		elseif $lastslot = 5 then 
+		
+			Send("{6 DOWN}")
+			Sleep($randomnum)
+			Send("{6 up}")
+			
+			Sleep($randomnum)
+			
+			MouseDown($MOUSE_CLICK_RIGHT)
+			Sleep($randomnum)
+			MouseUp($MOUSE_CLICK_RIGHT)
+			
+			$lastslot = 6
+		
+		elseif $lastslot = 6 then 
+		
+			Send("{7 DOWN}")
+			Sleep($randomnum)
+			Send("{7 up}")
+			
+			Sleep($randomnum)
+			
+			MouseDown($MOUSE_CLICK_RIGHT)
+			Sleep($randomnum)
+			MouseUp($MOUSE_CLICK_RIGHT)
+			
+			$lastslot = 7
+			
+		elseif $lastslot = 7 then 
+		
+			Send("{8 DOWN}")
+			Sleep($randomnum)
+			Send("{8 up}")
+			
+			Sleep($randomnum)
+			
+			MouseDown($MOUSE_CLICK_RIGHT)
+			Sleep($randomnum)
+			MouseUp($MOUSE_CLICK_RIGHT)
+			
+			$lastslot = 8
+		
+		elseif $lastslot = 8 then 
+		
+			Send("{9 DOWN}")
+			Sleep($randomnum)
+			Send("{9 up}")
+			
+			Sleep($randomnum)
+			
+			MouseDown($MOUSE_CLICK_RIGHT)
+			Sleep($randomnum)
+			MouseUp($MOUSE_CLICK_RIGHT)
+			
+			$lastslot = 9
+			
+		endif
+		
+		Sleep($randomnum)
+		Send("{1 DOWN}")
+		Sleep($randomnum)
+		Send("{1 up}")
+		
+		ExitLoop
+		
+	WEnd
+Endfunc
+
+Func openanimation()
+	Sleep(1)
+	WinSetTrans($MAIN, "", 0)
+	Sleep(1)
+	WinSetTrans($MAIN, "", 10)
+	Sleep(1)
+	WinSetTrans($MAIN, "", 20)
+	Sleep(1)
+	WinSetTrans($MAIN, "", 30)
+	Sleep(1)
+	WinSetTrans($MAIN, "", 40)
+	Sleep(1)
+	WinSetTrans($MAIN, "", 50)
+	Sleep(1)
+	WinSetTrans($MAIN, "", 60)
+	Sleep(1)
+	WinSetTrans($MAIN, "", 70)
+	Sleep(1)
+	WinSetTrans($MAIN, "", 80)
+	Sleep(1)
+	WinSetTrans($MAIN, "", 90)
+	Sleep(1)
+	WinSetTrans($MAIN, "", 100)
+	Sleep(1)
+	WinSetTrans($MAIN, "", 110)
+	Sleep(1)
+	WinSetTrans($MAIN, "", 120)
+	Sleep(1)
+	WinSetTrans($MAIN, "", 130)
+	Sleep(1)
+	WinSetTrans($MAIN, "", 140)
+	Sleep(1)
+	WinSetTrans($MAIN, "", 150)
+	Sleep(1)
+	WinSetTrans($MAIN, "", 160)
+	Sleep(1)
+	WinSetTrans($MAIN, "", 170)
+	Sleep(1)
+	WinSetTrans($MAIN, "", 180)
+	Sleep(1)
+	WinSetTrans($MAIN, "", 190)
+	Sleep(1)
+	WinSetTrans($MAIN, "", 200)
+	Sleep(1)
+	WinSetTrans($MAIN, "", 210)
+	Sleep(1)
+	WinSetTrans($MAIN, "", 220)
+	Sleep(1)
+	WinSetTrans($MAIN, "", 230)
+	Sleep(1)
+	WinSetTrans($MAIN, "", 245)
+	Sleep(1)
+	WinSetTrans($MAIN, "", 255)
+	Sleep(1)
+endfunc
+
+Func closeanimation()
+	Sleep(1)
+	WinSetTrans($MAIN, "", 255)
+	Sleep(1)
+	WinSetTrans($MAIN, "", 245)
+	Sleep(1)
+	WinSetTrans($MAIN, "", 230)
+	Sleep(1)
+	WinSetTrans($MAIN, "", 220)
+	Sleep(1)
+	WinSetTrans($MAIN, "", 210)
+	Sleep(1)
+	WinSetTrans($MAIN, "", 200)
+	Sleep(1)
+	WinSetTrans($MAIN, "", 190)
+	Sleep(1)
+	WinSetTrans($MAIN, "", 180)
+	Sleep(1)
+	WinSetTrans($MAIN, "", 170)
+	Sleep(1)
+	WinSetTrans($MAIN, "", 160)
+	Sleep(1)
+	WinSetTrans($MAIN, "", 150)
+	Sleep(1)
+	WinSetTrans($MAIN, "", 140)
+	Sleep(1)
+	WinSetTrans($MAIN, "", 130)
+	Sleep(1)
+	WinSetTrans($MAIN, "", 120)
+	Sleep(1)
+	WinSetTrans($MAIN, "", 110)
+	Sleep(1)
+	WinSetTrans($MAIN, "", 100)
+	Sleep(1)
+	WinSetTrans($MAIN, "", 90)
+	Sleep(1)
+	WinSetTrans($MAIN, "", 80)
+	Sleep(1)
+	WinSetTrans($MAIN, "", 70)
+	Sleep(1)
+	WinSetTrans($MAIN, "", 60)
+	Sleep(1)
+	WinSetTrans($MAIN, "", 50)
+	Sleep(1)
+	WinSetTrans($MAIN, "", 40)
+	Sleep(1)
+	WinSetTrans($MAIN, "", 30)
+	Sleep(1)
+	WinSetTrans($MAIN, "", 20)
+	Sleep(1)
+	WinSetTrans($MAIN, "", 10)
+	Sleep(1)
+	WinSetTrans($MAIN, "", 0)
+	Sleep(1)
+endfunc
+
+Func autoclicker()
+	
+while 1
+	if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(17.4093959550373)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(92.7647)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(20.0182119570673)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(76.8026)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(19.3247109709773)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(15.318)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(18.5183921142016)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(77.1598)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(17.2569407138508)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(15.2281)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(29.2297264840454)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(61.4411)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(22.7570030232891)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(15.1936)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(18.553303006338)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(46.0542)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(25.1518525450956)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(15.3053)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(15.4301183810458)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(46.5142)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(23.0674549634568)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(15.2743)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(26.6135946346913)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(61.4044)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(25.7864332885947)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(15.3077)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(25.9718633699231)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(61.4645)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(15.6174362136517)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(15.2399)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(16.3237152050715)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(61.9396)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(18.0344807566144)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(15.2804)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(23.4100870101247)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(46.012)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(23.9989190781489)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(15.2459)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(19.8775907442905)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(61.4547)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(19.379556424683)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(15.1703)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(29.6520935255103)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(61.9552)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(26.9270756549668)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(61.3752)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(20.0692257808987)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(15.298)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(27.4299452081323)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(61.4194)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(28.151857831981)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(15.7715)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(21.0545847227331)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(61.358)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(25.1860106794629)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(15.2478)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(15.0190829532221)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(61.4672)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(27.3763506452087)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(15.2238)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(16.1767052288633)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(61.9185)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(28.9700034633279)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(15.2325)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(26.9570870348252)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(46.1608)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(16.3699349330273)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(15.1513)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(23.7850441981573)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(61.4546)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(29.2177918832749)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(15.3877)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(24.9748356558848)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(61.7374)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(17.4615472031292)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(61.4276)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(20.7353364082519)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(15.2949)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(26.942516178824)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(61.4859)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(27.4779263476375)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(15.106)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(28.9259283815045)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(46.431)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(22.7273522363976)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(15.1607)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(15.4272401891649)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(61.4038)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(18.7379171827342)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(15.16)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(26.6901026945561)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(61.4117)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(15.2567221387289)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(15.772)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(29.2326970549766)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(61.4607)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(27.8814827464521)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(61.4427)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(26.5188618586399)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(15.3589)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(17.6245399459731)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(61.8007)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(19.6698275255039)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(15.0843)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(23.4676888491958)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(61.496)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(22.2374919208232)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(15.1588)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(19.3112132220995)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(61.4153)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(15.9004252741579)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(15.2555)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(26.9473696255591)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(61.9007)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(23.7241559301037)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(15.2529)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(20.8483578893356)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(61.4286)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(24.4112993055023)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(15.1831)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(27.0952232158743)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(61.4044)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(22.8939370473381)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(61.7436)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(21.3631363492459)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(15.2156)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(23.042147399392)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(61.4659)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(22.6108505611774)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(15.1573)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(23.2624026574194)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(46.0727)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(29.8504569428042)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(15.7915)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(25.9208460152149)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(76.7772)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(26.4142554241698)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(15.2892)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(19.4760483526625)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(45.9197)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(23.8560575048905)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(15.2364)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(21.0018664703239)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(61.7801)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(29.768169169547)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(15.2439)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(15.9299851069227)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(61.3429)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(18.5295353480615)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(61.0448)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(20.4386285191868)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(15.2298)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(24.160993747646)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(61.8955)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(28.2450301665813)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(15.2509)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(29.5863330981229)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(61.185)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(20.8936474181246)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(15.2345)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(25.4895004886203)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(61.3208)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(17.6974430785049)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(15.5361)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(28.7809203111101)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(61.3243)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(18.0357597058173)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(15.1503)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(22.022222885862)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(61.5514)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(23.8280138850678)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(15.2239)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(28.5444316815119)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(61.2831)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(15.8613820653409)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(15.1901)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(29.805350212846)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(61.2912)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(16.4497536874842)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(15.2068)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(25.923646237934)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(61.2772)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(15.7816676096991)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(15.2245)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(21.2773036560975)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(61.9628)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(17.5262964062858)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(15.206)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(16.321238988312)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(61.2577)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(28.6778044095263)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(15.2113)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(24.9712869117502)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(61.9599)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(17.2701231355313)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(15.2421)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(26.9712153158616)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(61.3757)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(17.9604472126812)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(15.1321)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(15.4071714926977)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(61.3695)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(24.581547814887)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(15.2093)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(25.248405339662)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(61.4306)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(26.8683698389214)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(15.0996)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(21.9774558709469)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(61.6071)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(26.9860185112339)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(15.1684)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(18.5534366976935)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(61.2073)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(16.9275415164884)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(15.2565)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(29.325937286485)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(61.2862)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(21.7688533407636)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(15.2021)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(20.4992912302259)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(61.4488)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(22.1860155067407)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(15.181)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(27.3373333364725)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(61.9005)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(22.7225862862542)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(15.1276)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(15.197828442324)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(61.3323)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(29.5429695944767)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(15.2422)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(23.1736736535095)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(61.322)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(21.3165935513098)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(15.3201)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(18.1710527313408)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(61.8422)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(20.7621206925251)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(15.1478)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(21.4008002006449)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(61.2532)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(18.5238584212493)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(15.1271)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(24.0549275837839)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(61.8723)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(16.47623606259)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(61.2872)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(25.0443516473752)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(15.0486)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(15.0423138344195)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(61.3748)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(18.1702644168399)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(15.1995)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(19.2499555845279)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(61.8974)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(22.2864420327824)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(15.0541)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(29.0026848600246)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(46.4744)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(27.2511007392313)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(14.5601)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(15.4214826633688)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(15.2234)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(22.0951958186924)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(61.404)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(15.3613601101097)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(61.8057)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(18.923405574169)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(15.0345)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(24.7136303409934)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(15.1486)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(15.3898027224932)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(61.249)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(25.7147665217053)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(14.962)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(19.9345532571897)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(45.8669)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(20.7157636375632)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(15.6757)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(29.4780393945985)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(15.0696)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(19.9476178362966)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(45.9486)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(22.8166450315621)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(15.0992)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(22.717985532945)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(61.3149)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(24.5111596514471)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(15.199)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(15.0818673649337)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(61.7836)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(16.9245928537566)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(15.1564)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(19.8741131799761)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(61.3063)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(16.2598641577642)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(15.1872)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(24.4184767082334)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(61.208)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(29.952969829319)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(14.8966)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(21.7445735482033)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(46.358)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(20.6277275586035)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(15.2236)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(19.0716972586233)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(60.9688)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(29.5466083462816)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(15.123)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(24.9010125920177)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(61.2861)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(18.5248400818091)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(15.5964)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(27.746917133918)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(46.0032)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(20.92687039054)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(15.1228)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(21.090783693362)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(14.8999)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(25.3859329875559)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(45.9613)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(21.9653485470917)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(14.9139)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(19.5387081499211)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(61.7582)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(15.7447213015985)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(15.121)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(22.8416403662413)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(15.1182)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(28.7307591887657)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(45.9976)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(23.6365168215707)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(15.1001)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(28.4345217444934)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(15.0285)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(19.3831421993673)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(45.9701)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(26.9399946159683)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(15.0578)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(15.2286649995949)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(61.5399)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(20.4477024148218)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(15.1661)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(18.7057720636949)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(15.107)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(21.7366818676237)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(45.9323)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(18.6833324027248)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(15.1842)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(16.5561084472574)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(61.2805)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(25.2188680996187)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(15.8363)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(16.2651242071297)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(14.9868)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(26.3462567492388)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(45.9943)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(26.9467212539166)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(15.1505)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(28.7428571004421)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(61.3787)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(28.788861874491)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(15.1928)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(29.972007041797)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(61.1965)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(16.6038086812478)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(15.0024)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(16.0270589869469)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(15.0929)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(29.5514849270694)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(45.9342)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(20.1923423039261)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(14.9192)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(29.9928795383312)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(61.3173)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(18.0238329211716)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(15.0791)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(26.517517020693)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(61.7375)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(15.1268650044221)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(15.0863)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(22.2834993666038)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(61.0998)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(26.682631149888)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(15.0811)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(25.1816142594907)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(61.6148)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(23.0391390400473)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(15.0797)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(20.2675733459182)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(61.0337)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(26.5708283975255)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(15.1833)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(20.2406656905077)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(45.9157)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(29.9942419677973)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(15.1696)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(29.7647372970823)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(15.1043)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(18.4973766433541)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(61.4244)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(18.6598576500546)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(15.0428)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(20.8535108913202)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(45.8513)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(17.6300082122907)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(15.1713)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(23.0843248846941)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(15.0944)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(25.7564849755727)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(45.7918)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(20.239748605527)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(15.0553)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(26.6822482296266)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(15.662)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(21.8070466665085)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(45.8271)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(15.5178093176801)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(15.2461)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(25.6405799242202)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(45.708)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(25.1205741497688)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(15.0686)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(26.3921922992449)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(15.0665)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(27.4418560427148)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(45.4588)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(25.7548597175628)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(15.611)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(19.9043216079008)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(14.95)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(21.276865726104)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(45.8139)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(18.1678828003351)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(14.9796)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(20.181146634277)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(15.0564)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(25.6291438546032)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(45.3865)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(19.511398934992)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(14.9779)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(28.4095885790884)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(14.7998)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(25.5521614768077)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(46.3283)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(26.6338167409413)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(14.978)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(26.7382329481188)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(61.3305)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(28.9756422769278)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(14.8976)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(20.159859607229)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(61.0706)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(17.9467202012893)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(15.0155)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(16.2876874173526)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(61.6528)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(17.1060990064871)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(15.0758)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(28.501293490408)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(15.0059)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(21.9582437735517)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(61.1545)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(24.7626428806689)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(15.073)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(28.7914107553661)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(61.6668)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(24.4885580276605)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(14.9372)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(17.9135288076941)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(77.076)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(20.8054628188256)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(14.4419)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(28.2497420709115)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(60.8814)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(21.1345182918012)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(15.5291)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(17.4686671060044)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(60.8368)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(22.6979809894692)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(15.0661)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(28.7381780461874)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(15.0881)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(28.3334826864302)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(61.1348)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(20.7154503325)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(15.2101)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(22.4041439860594)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(61.3965)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(27.5263486022595)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(15.1349)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(18.8782550801989)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(61.0151)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(23.3546042069793)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(14.8481)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(18.194364948431)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(61.0013)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(16.4757195208222)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(15.3122)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(28.0352929432411)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(61.0936)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(28.9087831531651)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(15.1057)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(26.812931135064)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(15.0405)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(17.4900025350507)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(45.7851)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(25.1995057950262)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(14.616)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(26.0526197799481)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(14.9225)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(24.3359699856956)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(61.7871)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(29.2621840909123)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(14.8667)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(15.6371014297474)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(14.9988)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(22.5612502789591)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(45.8549)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(24.5782266568858)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(14.8198)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(18.0008888337761)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(60.9922)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(17.9431042831857)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(15.4574)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(20.2152806287631)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(14.8943)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(25.7549006806221)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(61.1942)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(16.252869766904)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(14.741)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(26.7196502548177)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(61.1543)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(23.3617157454137)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(14.7199)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(28.500721383607)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(61.2813)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(24.8056764935609)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(14.7844)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(16.1974988586735)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(14.8604)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(25.5278770078439)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(45.6036)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(24.5859766344074)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(15.07)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(27.3046389548108)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(14.6911)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(29.1882305312902)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(45.6865)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(18.9024289394729)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(15.4846)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(21.1616625823081)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(60.9947)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(24.3942104524467)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(14.8746)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(20.4670552653261)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(15.041)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(26.2354477308691)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(45.3931)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(25.8328969858121)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(14.9447)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(19.0141077095177)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(14.9156)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(19.4967007404193)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(61.1282)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(27.4632552964613)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(15.0042)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(27.071477790596)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(61.1237)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(25.0189352512825)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(14.8987)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(26.9032134138979)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(61.2579)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(16.0402170801535)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(15.1461)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(18.2405825459864)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(14.8457)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(24.9064113653731)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(45.816)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(18.4995683643501)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(14.7605)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(22.3833115480375)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(61.1805)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(19.6907304693013)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(14.7933)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(23.7787380244117)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(14.9174)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(22.6095243310556)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(45.9128)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(18.8270668010227)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(15.0655)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(23.7386876984965)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(45.9898)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(23.1226148607675)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(14.5784)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(26.1778837500606)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(14.9965)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseDown($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(18.1514071498532)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+MouseUp($MOUSE_CLICK_LEFT)
+if NOT _IsPressed(48) THEN
+exitloop
+endif
+Sleep(61.146)
+wend
+
+EndFunc
